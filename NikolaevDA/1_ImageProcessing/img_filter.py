@@ -83,23 +83,16 @@ class Film:
             self.seed = seed
     
     def apply_filter(self, image):
-        lift=0.10
-        warmth=0.12
         img = image.astype(np.float32)
+        R = (img[..., 0] * 1.1) + 10
+        G = (img[..., 1] * 1.2) + 15
+        B = img[..., 2] * 0.9
 
-        # lift black point
-        k = lift
-        img = img * (1.0 - k) + k * 255.0
-
-        # warmth
-        w = warmth
-        img[:, :, 2] = np.clip(img[:, :, 2] * (1.0 + w),       0, 255)  # R
-        img[:, :, 1] = np.clip(img[:, :, 1] * (1.0 + w * 0.5), 0, 255)  # G
-        img[:, :, 0] = np.clip(img[:, :, 0] * (1.0 - w * 0.5), 0, 255)  # B
+        img = np.stack([B, G, R], axis=-1)
 
         if self.grain > 0:
             rng = np.random.default_rng(self.seed)
-            noise = rng.normal(0.0, self.grain, img.shape[:2])[:, :, None]
+            noise = rng.normal(0.0, self.grain, img.shape)
             img = img + noise
 
         return to_uint8(img)
@@ -120,7 +113,7 @@ class Matte:
         return to_uint8(image * (1 - alpha) + 255 * alpha)
 
 class OldPhoto:
-    def __init__(self, intensity=30.0, scratches=30, seed=None):
+    def __init__(self, intensity=0.1, scratches=30, seed=None):
         self.intensity = intensity
         self.scratches = scratches
         self.seed = seed
@@ -129,13 +122,13 @@ class OldPhoto:
         rng = np.random.default_rng(self.seed)
         h, w = image.shape[:2]
         img = image.astype(np.float64)
-        img += rng.normal(0, self.intensity, (h, w))[:, :, None]
+        img += rng.normal(0, self.intensity * 255, (h, w, 1))
         thickness = max(1, w // 800)
         for _ in range(self.scratches):
             x = rng.integers(0, w)
             y0 = rng.integers(0, h)
             y1 = y0 + rng.integers(h // 5, h)
-            img[y0:y1, x:x+thickness] = rng.choice([230, 30])
+            img[y0:y1, x:x + thickness] = img[y0:y1, x:x + thickness] * 0.85 + 255 * 0.15
         return to_uint8(img)
 
 class Neon:
