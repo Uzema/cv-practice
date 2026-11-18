@@ -47,13 +47,13 @@ class Resize(ImageFilter):
         src_h, src_w = image.shape[:2]
         dst_h, dst_w = self.height, self.width
 
-        y = (np.arange(dst_h) * (src_h / dst_h)).astype(np.int32)
-        x = (np.arange(dst_w) * (src_w / dst_w)).astype(np.int32)
+        y = (np.arange(dst_h) * (src_h / dst_h)).astype(np.int32) #(dst_h, 1)
+        x = (np.arange(dst_w) * (src_w / dst_w)).astype(np.int32) #(1, dst_w)
 
         y = np.clip(y, 0, src_h - 1)
         x = np.clip(x, 0, src_w - 1)
 
-        return image[np.ix_(y, x)]
+        return image[np.ix_(y, x)] #result[i, j] = image[y[i], x[j]]
 
 class Antique(ImageFilter):
     SEPIA = np.array([[0.131, 0.534, 0.272],
@@ -67,17 +67,17 @@ class Antique(ImageFilter):
 
     def apply_filter(self, image):
         h, w = image.shape[:2]
-        sepia = image @ self.SEPIA.T
+        sepia = image @ self.SEPIA.T #(h, w, 3) @ (3, 3) -> (h, w, 3)
 
         y, x = np.ogrid[0:h, 0:w]
         cy, cx = h / 2, w / 2
 
         d = np.sqrt(((x + 0.5 - cx) / cx) ** 2 + ((y + 0.5 - cy) / cy) ** 2) / np.sqrt(2)
 
-        t = np.clip((d - 0.3) / (1 - 0.3), 0, 1)
-        shade = 1 - self.vignette * t
+        t = np.clip((d - 0.3) / (1 - 0.3), 0, 1) #(h, w)
+        shade = 1 - self.vignette * t #(h, w)
 
-        return to_uint8(sepia * shade[:, :, None])
+        return to_uint8(sepia * shade[:, :, None]) #(h, w, 3) * (h, w, 1)
 
 class FadeColor(ImageFilter):
     def __init__(self, strength=0.5):
