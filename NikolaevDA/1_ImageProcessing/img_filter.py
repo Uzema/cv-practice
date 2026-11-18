@@ -15,7 +15,7 @@ class ImageFilter(ABC):
         filters = {
             'resize': lambda: Resize(args.width, args.height),
             'gray': lambda: RGB2GrayScale(),
-            'antique': lambda: Antique(),
+            'antique': lambda: Antique(args.vignette),
             'fade': lambda: FadeColor(args.fade),
             'film': lambda: Film(args.grain, args.seed),
             'matte': lambda: Matte(args.radius, args.softness),
@@ -60,8 +60,24 @@ class Antique:
                       [0.168, 0.686, 0.349],
                       [0.189, 0.769, 0.393]])
 
+    def __init__(self, vignette=0.6):
+        if not 0 <= vignette <= 1:
+            raise ValueError('vignette should be from between 0 and 1')
+        self.vignette = vignette
+
     def apply_filter(self, image):
-        return to_uint8(image @ self.SEPIA.T)
+        h, w = image.shape[:2]
+        sepia = image @ self.SEPIA.T
+
+        y, x = np.ogrid[0:h, 0:w]
+        cy, cx = h / 2, w / 2
+
+        d = np.sqrt(((x + 0.5 - cx) / cx) ** 2 + ((y + 0.5 - cy) / cy) ** 2) / np.sqrt(2)
+
+        t = np.clip((d - 0.3) / (1 - 0.3), 0, 1)
+        shade = 1 - self.vignette * t
+
+        return to_uint8(sepia * shade[:, :, None])
 
 class FadeColor:
     def __init__(self, strength=0.5):
@@ -114,6 +130,8 @@ class Matte:
 
 class OldPhoto:
     def __init__(self, intensity=0.1, scratches=30, seed=None):
+        if intensity < 0 or scratches < 0:
+            raise ValueError("intensity or scratches should be >0")
         self.intensity = intensity
         self.scratches = scratches
         self.seed = seed

@@ -27,6 +27,7 @@ def cli_argument_parser():
     parser.add_argument("--fade", type=float, default=0.5, help="the strength of the fade of the image")
     parser.add_argument("--grain", type=float, default=12, help="the strength of the grain on the image")
     parser.add_argument("--seed", type=int, help="seed of the rng")
+    parser.add_argument("--vignette", type=float, default=0.6, help="strength of the vignette")
     parser.add_argument("--radius", type=float, default=0.7, help="radius of the matte filter")
     parser.add_argument("--softness", type=float, default=0.3, help="softness of the matte filter")
     parser.add_argument("--intensity", type=float, default=0.1, help="intensity of old photo filter")
