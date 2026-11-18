@@ -6,7 +6,7 @@ def to_uint8(image):
 
 def to_gray(image):
     weights = np.array([0.114, 0.587, 0.299], dtype=np.float32)
-    gray_image = image @ weights
+    gray_image = image @ weights #(h, w, 3) @ (3,) -> (h, w)
     return gray_image
 
 class ImageFilter(ABC):
@@ -100,9 +100,10 @@ class Film(ImageFilter):
     
     def apply_filter(self, image):
         img = image.astype(np.float32)
-        R = (img[..., 0] * 1.1) + 10
-        G = (img[..., 1] * 1.2) + 15
-        B = img[..., 2] * 0.9
+        b, g, r = img[..., 0], img[..., 1], img[..., 2]
+        R = (b * 1.1) + 10
+        G = (g * 1.2) + 15
+        B = r * 0.9
 
         img = np.stack([B, G, R], axis=-1)
 
