@@ -34,7 +34,7 @@ class RGB2GrayScale(ImageFilter):
     def apply_filter(self, image):
         return to_uint8(to_gray(image))
 
-class Resize:
+class Resize(ImageFilter):
     def __init__(self, width, height):
             if width is None or height is None:
                 raise ValueError("для фильтра resize нужно указать --width и --height")
@@ -55,7 +55,7 @@ class Resize:
 
         return image[np.ix_(y, x)]
 
-class Antique:
+class Antique(ImageFilter):
     SEPIA = np.array([[0.131, 0.534, 0.272],
                       [0.168, 0.686, 0.349],
                       [0.189, 0.769, 0.393]])
@@ -79,7 +79,7 @@ class Antique:
 
         return to_uint8(sepia * shade[:, :, None])
 
-class FadeColor:
+class FadeColor(ImageFilter):
     def __init__(self, strength=0.5):
         if not 0 <= strength <= 1:
             raise ValueError('strength должен быть от 0 до 1')
@@ -93,7 +93,7 @@ class FadeColor:
         low, high = 70 * s, 255 - 40 * s
         return to_uint8(low + desaturated * (high - low) / 255)
 
-class Film:
+class Film(ImageFilter):
     def __init__(self, grain=12.0, seed=None):
             self.grain = grain
             self.seed = seed
@@ -113,7 +113,7 @@ class Film:
 
         return to_uint8(img)
 
-class Matte:
+class Matte(ImageFilter):
     def __init__(self, radius=0.7, softness=0.3):
         if softness <= 0:
             raise ValueError('softness cant be <= 0')
@@ -128,7 +128,7 @@ class Matte:
         alpha = np.clip((d - self.radius) / self.softness, 0, 1)[:, :, None] 
         return to_uint8(image * (1 - alpha) + 255 * alpha)
 
-class OldPhoto:
+class OldPhoto(ImageFilter):
     def __init__(self, intensity=0.1, scratches=30, seed=None):
         if intensity < 0 or scratches < 0:
             raise ValueError("intensity or scratches should be >0")
@@ -149,7 +149,7 @@ class OldPhoto:
             img[y0:y1, x:x + thickness] = img[y0:y1, x:x + thickness] * 0.85 + 255 * 0.15
         return to_uint8(img)
 
-class Neon:
+class Neon(ImageFilter):
     def apply_filter(self, image):
         img_gray = image.astype(np.float32)
         if len(img_gray.shape) == 3:
